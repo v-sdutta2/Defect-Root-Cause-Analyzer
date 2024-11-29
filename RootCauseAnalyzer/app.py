@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, url_for
 import pandas as pd
 from openai import AzureOpenAI
 import time
@@ -93,7 +93,16 @@ def get_progress():
     global error_message
     if error_message:
         return {'progress': -1, 'error': error_message}
-    return {'progress': progress}
+
+    messages = [
+        "Processing defect details...",
+        "Analyzing descriptions...",
+        "Generating root causes...",
+        "Almost there...",
+        "Finalizing results..."
+    ]
+    message_index = min(progress // 20, 4)
+    return {'progress': progress, 'message': messages[message_index]}
 
 
 @app.route('/download')

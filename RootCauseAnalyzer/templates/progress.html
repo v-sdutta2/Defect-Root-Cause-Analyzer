@@ -2,6 +2,78 @@
 <html>
 <head>
     <title>Processing</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-image: url('/static/bg3.png');
+    background-size: cover;
+    background-position: center;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+input[type="file"], select, button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+progress {
+    width: 100%;
+    height: 20px;
+}
+
+#downloadLink {
+    display: none;
+    margin-top: 20px;
+    text-decoration: underline;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    margin-top: 20px;
+}
+
+.back-link {
+    display: none;
+    margin-top: 20px;
+    text-decoration: none;
+    color: #4CAF50;
+    font-weight: bold;
+}
+    </style>
     <script>
         function updateProgress() {
             fetch('/progress')
@@ -10,12 +82,15 @@
                     if (data.progress === -1) {
                         document.getElementById('progress').innerText = data.error;
                         document.getElementById('progressBar').style.display = 'none';
+                        document.getElementById('backLink').style.display = 'block';
                     } else {
                         document.getElementById('progress').innerText = data.progress + '%';
                         document.getElementById('progressBar').value = data.progress;
+                        document.getElementById('message').innerText = data.message;
                         if (data.progress < 100) {
-                            setTimeout(updateProgress, 1000);
+                            setTimeout(updateProgress, 500);
                         } else {
+                            document.getElementById('message').innerText = "Root Causes generated";
                             document.getElementById('downloadLink').style.display = 'block';
                         }
                     }
@@ -25,9 +100,13 @@
     </script>
 </head>
 <body>
-    <h1>Processing Defects</h1>
-    <progress id="progressBar" value="0" max="100"></progress>
-    <p id="progress">0%</p>
-    <a id="downloadLink" href="/download" style="display:none;">Download Processed File</a>
+    <div class="container">
+        <h1 id="message">Processing Defects</h1>
+        <progress id="progressBar" value="0" max="100"></progress>
+        <p id="progress">0%</p>
+        <a id="downloadLink" href="/download">Download Processed File</a>
+        <p class="error" id="error"></p>
+        <a id="backLink" class="back-link" href="/">Go back to select correct priority</a>
+    </div>
 </body>
 </html>

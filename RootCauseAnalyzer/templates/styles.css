@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Defect Analysis</title>
-    <style>
-       body {
+body {
     font-family: Arial, sans-serif;
-    background-image: url('/static/bg3.png');
+    background-image: url('/static/background.jpeg');
     background-size: cover;
     background-position: center;
     color: #333;
@@ -19,7 +14,7 @@
 
 .container {
     background: rgba(255, 255, 255, 0.8);
-    padding: 30px;
+    padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -31,11 +26,10 @@ h1 {
 
 input[type="file"], select, button {
     width: 100%;
-    padding: 5px;
+    padding: 10px;
     margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
-
 }
 
 button {
@@ -74,22 +68,3 @@ progress {
     color: #4CAF50;
     font-weight: bold;
 }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Upload Defect Details</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required><br><br>
-            <label for="priority">Select Priority:</label>
-            <select name="priority" required>
-                <option value="All">All</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-            </select><br><br>
-            <button type="submit">Generate</button>
-        </form>
-    </div>
-</body>
-</html>
