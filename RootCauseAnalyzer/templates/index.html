@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Defect Analysis</title>
+</head>
+<body>
+    <h1>Upload Defect Details</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required><br><br>
+        <label for="priority">Select Priority:</label>
+        <select name="priority" required>
+            <option value="All">All</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select><br><br>
+        <button type="submit">Generate</button>
+    </form>
+</body>
+</html>
