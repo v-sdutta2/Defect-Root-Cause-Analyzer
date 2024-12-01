@@ -5,7 +5,7 @@ import time
 import threading
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 # setup Azure OpenAI Client
 endpoint= os.getenv("ENDPOINT_URL", "https://ado-analysis-pipelines.openai.azure.com/")
@@ -16,6 +16,8 @@ client = AzureOpenAI(api_key=api_key, api_version="2024-05-01-preview",azure_end
 # Global variable to store the progress and error message
 progress = 0
 error_message = None
+processing_time = 0
+total_defects_processed =0
 
 def generate_root_cause(description, close_description):
     prompt = f"Based on the following defect details, generate the most probable root cause in one or two sentences:\n\nDescription: {description}\nClose Description: {close_description}\n\nRoot Cause:"
@@ -31,30 +33,49 @@ def generate_root_cause(description, close_description):
 
 
 def process_defects(file_path, priority):
-    global progress, error_message
+    global progress, error_message,processing_time, total_defects_processed
     error_message = None  # Reset error message
 
     # Read the Excel file
-    df = pd.read_excel(file_path)
+    try:
+        # Read the Excel file
+        df = pd.read_excel(file_path)
+    except Exception as e:
+        error_message = "The uploaded file is corrupted or not a valid Excel file."
+        return None
+
+        # Check if the DataFrame is empty
+    if df.empty:
+        error_message = "The uploaded excel file has No Data !"
+        return None
 
     # Filter defects based on priority
     if priority != 'All':
-        df = df[df['Priority'] == int(priority)]
+        filtered_df = df[df['Priority'] == int(priority)]
+    else:
+        filtered_df = df
 
     # Check if there are no matching defects
-    if df.empty:
+    if filtered_df.empty:
         error_message = f"No defects found with priority {priority}."
         return None
 
+    # Start processing time
+    start_time = time.time()
+
     # Simulate processing time and generate root cause analysis using Azure OpenAI
-    total_defects = len(df)
-    for i in range(total_defects):
+    total_defects_processed = len(filtered_df)
+    for i in range(total_defects_processed):
         time.sleep(0.1)  # Simulate time taken to process each defect
-        description = df.iloc[i]['Description']
-        close_description = df.iloc[i]['CloseDescription']
+        description = filtered_df.iloc[i]['Description']
+        close_description = filtered_df.iloc[i]['CloseDescription']
         root_cause = generate_root_cause(description, close_description)
-        df.at[i, 'Root Cause'] = root_cause
-        progress = int((i + 1) / total_defects * 100)
+        df.loc[filtered_df.index[i], 'Root Cause'] = root_cause
+        progress = int((i + 1) / total_defects_processed * 100)
+
+    # End processing time
+    end_time = time.time()
+    processing_time = end_time - start_time
 
     # Save the result to a new Excel file
     output_file = 'processed_defects.xlsx'
@@ -70,7 +91,7 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    global progress, error_message
+    global progress, error_message, processing_time, total_defects_processed
     progress = 0
 
     # Get the uploaded file and priority
@@ -85,12 +106,12 @@ def upload_file():
     thread = threading.Thread(target=process_defects, args=(file_path, priority))
     thread.start()
 
-    return render_template('progress.html')
+    return render_template('progress.html', priority=priority)
 
 
 @app.route('/progress')
 def get_progress():
-    global error_message
+    global error_message, total_defects_processed, processing_time
     if error_message:
         return {'progress': -1, 'error': error_message}
 
@@ -102,8 +123,12 @@ def get_progress():
         "Finalizing results..."
     ]
     message_index = min(progress // 20, 4)
-    return {'progress': progress, 'message': messages[message_index]}
-
+    return {
+        'progress': progress,
+        'message': messages[message_index],
+        'total_defects_processed': total_defects_processed,
+        'processing_time': round(processing_time, 2)
+    }
 
 @app.route('/download')
 def download_file():
